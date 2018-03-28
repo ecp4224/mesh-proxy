@@ -5,9 +5,14 @@ namespace MeshProxy
 {
     public class MeshProxy
     {
+        public const string Version = "1.0.0";
+        
         private Service[] Services = {
-            new PeerDiscovery(),
-            new PeerManager()
+            new MeshProxyLog(),
+            new MeshProxyConfig(), 
+            new EthernetListener(), 
+            new PeerManager(),
+            new PeerDiscovery()
         };
 
         public async Task Init()

@@ -1,10 +1,110 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{A5E7DE8D-D365-4D1B-B2E5-C38B3430BDE4}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <RootNamespace>MeshProxy</RootNamespace>
+    <AssemblyName>MeshProxy</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ExternalConsole>true</ExternalConsole>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ExternalConsole>true</ExternalConsole>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="DNS" Version="3.0.0" />
-    <PackageReference Include="SharpPcap" Version="4.4.0" />
+    <Reference Include="System" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PacketDotNet">
+      <HintPath>..\packages\PacketDotNet.0.16.0\lib\PacketDotNet.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpPcap">
+      <HintPath>..\packages\SharpPcap.4.4.0\lib\SharpPcap.dll</HintPath>
+    </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="AdvanceUdpClient.cs" />
+    <Compile Include="AsyncShellCommand.cs" />
+    <Compile Include="EthernetListener.cs" />
+    <Compile Include="MeshProxy.cs" />
+    <Compile Include="MeshProxyConfig.cs" />
+    <Compile Include="MeshProxyLog.cs" />
+    <Compile Include="PacketPayload.cs" />
+    <Compile Include="Peer.cs" />
+    <Compile Include="PeerDiscovery.cs" />
+    <Compile Include="PeerManager.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Service.cs" />
+    <Compile Include="UdpClientExtension.cs" />
+    <Compile Include="DNS\Client\ClientRequest.cs" />
+    <Compile Include="DNS\Client\ClientResponse.cs" />
+    <Compile Include="DNS\Client\DnsClient.cs" />
+    <Compile Include="DNS\Client\ResponseException.cs" />
+    <Compile Include="DNS\Client\RequestResolver\IRequestResolver.cs" />
+    <Compile Include="DNS\Client\RequestResolver\NullRequestResolver.cs" />
+    <Compile Include="DNS\Client\RequestResolver\TcpRequestResolver.cs" />
+    <Compile Include="DNS\Client\RequestResolver\UdpRequestResolver.cs" />
+    <Compile Include="DNS\Protocol\CharacterString.cs" />
+    <Compile Include="DNS\Protocol\Domain.cs" />
+    <Compile Include="DNS\Protocol\Header.cs" />
+    <Compile Include="DNS\Protocol\IMessage.cs" />
+    <Compile Include="DNS\Protocol\IMessageEntry.cs" />
+    <Compile Include="DNS\Protocol\IRequest.cs" />
+    <Compile Include="DNS\Protocol\IResponse.cs" />
+    <Compile Include="DNS\Protocol\OperationCode.cs" />
+    <Compile Include="DNS\Protocol\Question.cs" />
+    <Compile Include="DNS\Protocol\RecordClass.cs" />
+    <Compile Include="DNS\Protocol\RecordType.cs" />
+    <Compile Include="DNS\Protocol\Request.cs" />
+    <Compile Include="DNS\Protocol\Response.cs" />
+    <Compile Include="DNS\Protocol\ResponseCode.cs" />
+    <Compile Include="DNS\Protocol\Marshalling\EndianAttribute.cs" />
+    <Compile Include="DNS\Protocol\Marshalling\Endianness.cs" />
+    <Compile Include="DNS\Protocol\Marshalling\Struct.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\BaseResourceRecord.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\CanonicalNameResourceRecord.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\IPAddressResourceRecord.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\IResourceRecord.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\MailExchangeResourceRecord.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\NameServerResourceRecord.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\PointerResourceRecord.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\ResourceRecord.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\ResourceRecordFactory.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\StartOfAuthorityResourceRecord.cs" />
+    <Compile Include="DNS\Protocol\ResourceRecords\TextResourceRecord.cs" />
+    <Compile Include="DNS\Protocol\Utils\ByteExtensions.cs" />
+    <Compile Include="DNS\Protocol\Utils\ByteStream.cs" />
+    <Compile Include="DNS\Protocol\Utils\ObjectStringifier.cs" />
+    <Compile Include="DNS\Protocol\Utils\TaskExtensions.cs" />
+    <Compile Include="DNS\Server\DnsServer.cs" />
+    <Compile Include="DNS\Server\MasterFile.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config.json" />
+    <None Include="SharpPcap.dll.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DNS\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

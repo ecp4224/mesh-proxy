@@ -17,6 +17,7 @@ namespace MeshProxy
                 {
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     FileName = file,
                     Arguments = args
                 }
@@ -37,6 +38,7 @@ namespace MeshProxy
                 {
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     FileName = file,
                     Arguments = args
                 }
@@ -50,6 +52,7 @@ namespace MeshProxy
         {
             var tcs = new TaskCompletionSource<int>();
 
+            process.EnableRaisingEvents = true;
             process.Exited += (s, ea) => tcs.SetResult(process.ExitCode);
             process.OutputDataReceived += (s, ea) => Console.WriteLine(ea.Data);
             process.ErrorDataReceived += (s, ea) => Console.WriteLine("ERR: " + ea.Data);
@@ -73,6 +76,7 @@ namespace MeshProxy
             var tcs = new TaskCompletionSource<string>();
 
             string totalOutput = "";
+            process.EnableRaisingEvents = true;
             process.Exited += (s, ea) => tcs.SetResult(totalOutput);
             process.OutputDataReceived += (s, ea) => totalOutput += ea.Data;
             process.ErrorDataReceived += (s, ea) => totalOutput += "ERR: " + ea.Data;

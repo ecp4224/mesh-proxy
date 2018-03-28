@@ -1,51 +1,85 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using PacketDotNet;
+using SharpPcap;
 
 namespace MeshProxy
 {
-    public class Peer
-    {
-        public static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(30);
-        public static readonly TimeSpan MaxHeartbeatInterval = TimeSpan.FromSeconds(60);
-        public string Name { get; set; }
-        public string InternalIP { get; private set; }
-        public string ExternalIP { get; private set; }
+	public class Peer
+	{
 
-        public TimeSpan LastHeartbeat
-        {
-            get
-            {
-                var now = DateTime.Now;
-                var duration = now - lastHeartbeat;
+		public static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(30);
+		public static readonly TimeSpan MaxHeartbeatInterval = TimeSpan.FromSeconds(60);
+		private static int idCount = 0;
 
-                return duration;
-            }
-        }
+		public int Id { get; }
+		public string Version { get; private set; }
+		public string Name { get; private set; }
+		public string InternalIP { get; private set; }
+		public IPEndPoint ExternalIP { get; private set; }
+		public PeerManager Owner { get; private set; }
+		public MeshProxyLog Log
+		{
+			get
+			{
+				return Owner.GetService<MeshProxyLog>();
+			}
+		}
 
-        public bool IsAlive => LastHeartbeat >= MaxHeartbeatInterval;
+		public TimeSpan LastHeartbeat
+		{
+			get
+			{
+				var now = DateTime.Now;
+				var duration = now - lastHeartbeat;
 
-        private UdpClient Client;
-        private string[] connectedPeers = new string[0];
-        private DateTime lastHeartbeat = DateTime.Now;
+				return duration;
+			}
+		}
 
-        public async Task<bool> HasConnection(string peerName)
-        {
-            if (!IsAlive)
-                return false;
+		public bool IsAlive => LastHeartbeat >= MaxHeartbeatInterval;
 
-            if (connectedPeers.Contains(peerName))
-                return true;
+		private string[] connectedPeers = new string[0];
+		private DateTime lastHeartbeat = DateTime.Now;
 
-            if (HeartbeatInterval <= LastHeartbeat) return false;
-            
-            var waitTime = HeartbeatInterval - LastHeartbeat;
-            await Task.Delay(waitTime);
+		public Peer(IPEndPoint peerIp, PacketPayload.Handshake payload, PeerManager owner)
+		{
+			this.Owner = owner;
 
-            return connectedPeers.Contains(peerName);
-        }
-    }
+			this.ExternalIP = peerIp;
+			Id = idCount++;
+
+			this.Name = payload.Name;
+			connectedPeers = payload.KnownPeers;
+			this.Version = payload.Version;
+		}
+
+		public void ForwardPacket(RawCapture rawCapture)
+		{
+			var packet = new PacketPayload.PacketForward(rawCapture).Compile();
+
+			Owner.SendPacket(this, packet);
+		}
+
+		public async Task<bool> HasConnection(string peerName)
+		{
+			if (!IsAlive)
+				return false;
+
+			if (connectedPeers.Contains(peerName))
+				return true;
+
+			if (HeartbeatInterval <= LastHeartbeat) return false;
+
+			var waitTime = HeartbeatInterval - LastHeartbeat;
+			await Task.Delay(waitTime);
+
+			return connectedPeers.Contains(peerName);
+		}
+	}
 }
