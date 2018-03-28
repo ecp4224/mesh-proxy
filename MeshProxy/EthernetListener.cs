@@ -70,7 +70,7 @@ namespace MeshProxy
 
 			if (filter.ContainsKey(destination))
 			{
-				filter[destination](packet);
+				filter[destination](raw);
 			}
 		}
 
@@ -92,7 +92,7 @@ namespace MeshProxy
 
 			filter.Add(ip, delegate (RawCapture packet)
 			{
-				peer.ForwardPacket(ipPacket);
+				peer.ForwardPacket(packet);
 			});
 
 			startIp++;
