@@ -4,8 +4,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using MeshProxy.Utils;
+using MeshProxy.Network;
 
-namespace MeshProxy
+namespace MeshProxy.Services
 {
     public class PeerDiscovery : Service
     {
@@ -15,6 +17,7 @@ namespace MeshProxy
         public PeerManager Manager => Owner.GetService<PeerManager>();
         public MeshProxyConfig Config => Owner.GetService<MeshProxyConfig>();
         public MeshProxyLog Log => Owner.GetService<MeshProxyLog>();
+		public EthernetListener Ethernet => Owner.GetService<EthernetListener>();
         
         protected override async Task OnInit()
         {
@@ -53,36 +56,51 @@ namespace MeshProxy
                 Array.Copy(recvData, 2, jsonData, 0, jsonData.Length);
 
                 var json = Encoding.UTF8.GetString(jsonData);
-                if (recvData[0] == 0x00 && recvData[1] == 0x00)
-                {
-                    var payload = JsonConvert.DeserializeObject<PacketPayload.Handshake>(json);
+				if (recvData[0] == 0x00 && recvData[1] == 0x00)
+				{
+					var payload = JsonConvert.DeserializeObject<PacketPayload.Handshake>(json);
 
-                    if (ignoreFirst && payload.Name == Config.Name)
-                    {
-                        ignoreFirst = false;
-                        continue; //Ignore this message
-                    }
-                    
-                    Log.Info("Got handshack from " + payload.Name);
-                    byte[] response = await Manager.HandshakeNode(recvBuffer.RemoteEndPoint, payload); //See if we can accept peer
-                    
-                    Log.Info("Sending response");
-                    UdpClient.Send(response, response.Length, recvBuffer.RemoteEndPoint.Address.ToString(), PORT);
-                } 
-                else if (recvData[0] == 0x00 && recvData[1] == 0x01)
-                {
-                    var payload = JsonConvert.DeserializeObject<PacketPayload.Reject>(json);
-                    
-                    Log.Warn("REJECTED: " + payload.Reason);
-                }
-                else if (recvData[0] == 0x00 && recvData[1] == 0x02)
-                {
-                    var payload = JsonConvert.DeserializeObject<PacketPayload.Handshake>(json);
+					if (ignoreFirst && payload.Name == Config.Name)
+					{
+						ignoreFirst = false;
+						continue; //Ignore this message
+					}
 
-                    await Manager.HandshakeNode(recvBuffer.RemoteEndPoint, payload); //Accept peer
-                    
-                    Log.Info("Got handshake response from " + payload.Name);
-                }
+					Log.Info("Got handshack from " + payload.Name);
+					byte[] response = await Manager.HandshakeNode(recvBuffer.RemoteEndPoint, payload); //See if we can accept peer
+
+					Log.Info("Sending response");
+					UdpClient.Send(response, response.Length, recvBuffer.RemoteEndPoint.Address.ToString(), PORT);
+				}
+				else if (recvData[0] == 0x00 && recvData[1] == 0x01)
+				{
+					var payload = JsonConvert.DeserializeObject<PacketPayload.Reject>(json);
+
+					Log.Warn("REJECTED: " + payload.Reason);
+				}
+				else if (recvData[0] == 0x00 && recvData[1] == 0x02)
+				{
+					var payload = JsonConvert.DeserializeObject<PacketPayload.Handshake>(json);
+
+					await Manager.HandshakeNode(recvBuffer.RemoteEndPoint, payload); //Accept peer
+
+					Log.Info("Got handshake response from " + payload.Name);
+				}
+				else if (recvData[0] == 0x01 && recvData[1] == 0x03)
+				{
+					var payload = JsonConvert.DeserializeObject<PacketPayload.PacketForward>(json);
+
+					var newPacket = await Manager.HandleForwardedPacket(payload);
+
+					if (newPacket == null)
+					{
+						Log.Warn("Got a forwarded packet but nothing was sent!");
+					}
+					else
+					{
+						Ethernet.Device.SendPacket(newPacket);
+					}
+				}
             }
         }
     }

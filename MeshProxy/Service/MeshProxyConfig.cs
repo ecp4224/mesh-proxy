@@ -4,7 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace MeshProxy
+namespace MeshProxy.Services
 {
     public class MeshProxyConfig : Service
     {
@@ -13,6 +13,7 @@ namespace MeshProxy
         public string Name => configProxy.name;
         public string EthernetBindAddress => configProxy.ethernetBindIp;
         public IPAddress WifiBindAddress => IPAddress.Parse(configProxy.wifiBindIp);
+		public bool ForwardBroadcastPackets => configProxy.forwardBroadcastPackets;
 
         protected override async Task OnInit()
         {
@@ -28,7 +29,7 @@ namespace MeshProxy
             }
         }
 
-        public string TCPForwarding(short port)
+        public string TCPForwarding(ushort port)
         {
             if (!configProxy.tcpPorts.ContainsKey(port))
                 return null;
@@ -36,7 +37,7 @@ namespace MeshProxy
             return configProxy.tcpPorts[port];
         }
 
-        public string UDPForwarding(short port)
+        public string UDPForwarding(ushort port)
         {
             if (!configProxy.udpPorts.ContainsKey(port))
                 return null;
@@ -47,10 +48,11 @@ namespace MeshProxy
         private class MConfig
         {
             public string name = "SimplePeer";
-            public Dictionary<short, string> tcpPorts = new Dictionary<short, string>();
-            public Dictionary<short, string> udpPorts = new Dictionary<short, string>();
+            public Dictionary<ushort, string> tcpPorts = new Dictionary<ushort, string>();
+            public Dictionary<ushort, string> udpPorts = new Dictionary<ushort, string>();
             public string wifiBindIp = "10.0.0.93";
             public string ethernetBindIp = "10.0.0.94";
+			public bool forwardBroadcastPackets = true;
         }
     }
 }

@@ -1,16 +1,20 @@
 ﻿using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SharpPcap;
 using System.Linq;
 using PacketDotNet;
+using MeshProxy.Network;
+using MeshProxy.Utils;
 
-namespace MeshProxy
+namespace MeshProxy.Services
 {
 	public class EthernetListener : Service
 	{
 		private MeshProxyLog Log => Owner.GetService<MeshProxyLog>();
-		private ICaptureDevice ethernet;
+		private PeerManager PeerManager => Owner.GetService<PeerManager>();
+		public ICaptureDevice Device { get; private set; }
 		private int startIp;
 		private string Iprefix;
 		private Dictionary<string, Action<RawCapture>> filter = new Dictionary<string, Action<RawCapture>>();
@@ -30,18 +34,30 @@ namespace MeshProxy
 
 			Log.Info("Capturing on any device");
 
-			var anyDevice = CaptureDeviceList.Instance.FirstOrDefault(d => d.Name == "any");
+			Device = CaptureDeviceList.Instance.FirstOrDefault(d => d.Name == "eth0");
 
-			if (anyDevice == null)
+			if (Device == null)
 				return;
 
-			anyDevice.OnPacketArrival += AnyDevice_OnPacketArrival;
+			Device.OnPacketArrival += AnyDevice_OnPacketArrival;
 
-			anyDevice.Open(DeviceMode.Promiscuous, 0);
+			Device.Open(DeviceMode.Promiscuous, 0);
 
 			Log.Info("Starting capture");
 
-			anyDevice.StartCapture();
+			Device.StartCapture();
+
+			if (config.ForwardBroadcastPackets)
+			{
+				Log.Info("Creating filter for broadcast address");
+				filter.Add(IPAddress.Broadcast.ToString(), (RawCapture obj) =>
+				{
+					foreach (var peer in PeerManager.Peers)
+					{
+						peer.ForwardPacket(obj);
+					}
+				});
+			}
 
 			Log.Info("EthernetListener Init complete");
 		}

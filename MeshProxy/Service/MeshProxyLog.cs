@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MeshProxy
+namespace MeshProxy.Services
 {
     public class MeshProxyLog : Service
     {

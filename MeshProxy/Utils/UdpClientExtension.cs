@@ -1,6 +1,7 @@
 ﻿using System.Net.Sockets;
+using MeshProxy.Network;
 
-namespace MeshProxy
+namespace MeshProxy.Utils
 {
     public static class UdpClientExtension
     {

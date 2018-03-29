@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 
-namespace MeshProxy
+namespace MeshProxy.Utils
 {
     public class AdvanceUdpClient : UdpClient
     {

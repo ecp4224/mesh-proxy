@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace MeshProxy
+namespace MeshProxy.Services
 {
     public abstract class Service
     {

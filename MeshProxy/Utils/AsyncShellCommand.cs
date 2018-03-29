@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace MeshProxy
+namespace MeshProxy.Utils
 {
     public static class AsyncShellCommand
     {

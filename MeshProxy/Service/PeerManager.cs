@@ -6,12 +6,17 @@ using DNS.Client.RequestResolver;
 using DNS.Protocol;
 using DNS.Protocol.ResourceRecords;
 using DNS.Server;
+using System;
+using SharpPcap;
+using PacketDotNet;
+using MeshProxy.Network;
 
-namespace MeshProxy
+
+namespace MeshProxy.Services
 {
     public class PeerManager : Service, IRequestResolver
-    {
-        private List<Peer> Peers = new List<Peer>();
+	{
+        public List<Peer> Peers = new List<Peer>();
 
 		private PeerDiscovery Discovery => Owner.GetService<PeerDiscovery>();
         private MeshProxyLog Log => Owner.GetService<MeshProxyLog>();
@@ -101,7 +106,7 @@ namespace MeshProxy
 
         }
 
-        public async Task<byte[]> HandshakeNode(IPEndPoint recvBufferRemoteEndPoint, PacketPayload.Handshake payload)
+		public async Task<byte[]> HandshakeNode(IPEndPoint recvBufferRemoteEndPoint, PacketPayload.Handshake payload)
         {
             if (KnownPeers.Contains(payload.Name))
             {
@@ -134,5 +139,50 @@ namespace MeshProxy
             
             return handshake;
         }
+
+		internal async Task<Packet> HandleForwardedPacket(PacketPayload.PacketForward payload)
+		{
+			var rawPacket = Packet.ParsePacket(payload.type, payload.data);
+
+			//See if we're doing TCP or UDP
+			var tcpPacket = (TcpPacket)rawPacket.Extract(typeof(TcpPacket));
+			var udpPacket = (UdpPacket)rawPacket.Extract(typeof(UdpPacket));
+
+			string ip;
+			if (tcpPacket != null)
+			{
+				//This is a TCP Packet, let's check our port table
+
+				ip = Config.TCPForwarding(tcpPacket.DestinationPort);
+				if (ip == null)
+					return null; //No port mapping, let's ignore this forwarded packet
+			}
+			else if (udpPacket != null)
+			{
+				//This is a UDP Packet, let's check out port table
+
+				ip = Config.UDPForwarding(udpPacket.DestinationPort);
+				if (ip == null)
+					return null; //No port mapping, let's ignore this forwarded packet
+			}
+			else
+			{
+				return null; //Unusuable packet, let's ignore this forwarded packet
+			}
+
+
+			//We have a port mapping, let's change some things on this packet
+			var ipPacket = (IpPacket)tcpPacket.Extract(typeof(IpPacket));
+
+			if (ipPacket != null)
+			{
+				ipPacket.DestinationAddress = IPAddress.Parse(ip);
+				ipPacket.SourceAddress = IPAddress.Parse(Config.EthernetBindAddress); //Set the source to be ourself
+
+				return rawPacket; //Ready to be sent!
+			}
+
+			return null; //Unusuable packet, let's ignore this forwarded packet
+		}
     }
 }

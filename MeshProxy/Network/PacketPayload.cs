@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using PacketDotNet;
 using SharpPcap;
 
-namespace MeshProxy
+namespace MeshProxy.Network
 {
 	public static class PacketPayload
 	{

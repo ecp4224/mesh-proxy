@@ -7,8 +7,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using PacketDotNet;
 using SharpPcap;
+using MeshProxy.Services;
 
-namespace MeshProxy
+namespace MeshProxy.Network
 {
 	public class Peer
 	{

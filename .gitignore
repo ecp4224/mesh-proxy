@@ -1,3 +1,4 @@
+.vs/*
 packages/*
 *.userprefs
 .DS_Store
