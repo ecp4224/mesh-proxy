@@ -21,8 +21,15 @@ namespace MeshProxy.Network
 		public int Id { get; }
 		public string Version { get; private set; }
 		public string Name { get; private set; }
-		public string InternalIP { get; private set; }
-		public IPEndPoint ExternalIP { get; private set; }
+		public string InternalIP { get; set; }
+        public IPEndPoint ExternalEndPoint { get; private set; }
+        public string ExternalIP
+        {
+            get
+            {
+                return ExternalEndPoint.ToString().Split(':')[0];
+            }
+        }
 		public PeerManager Owner { get; private set; }
 		public MeshProxyLog Log
 		{
@@ -52,7 +59,7 @@ namespace MeshProxy.Network
 		{
 			this.Owner = owner;
 
-			this.ExternalIP = peerIp;
+            this.ExternalEndPoint = peerIp;
 			Id = idCount++;
 
 			this.Name = payload.Name;

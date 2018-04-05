@@ -11,6 +11,7 @@ namespace MeshProxy
         private Service[] Services = {
             new MeshProxyLog(),
             new MeshProxyConfig(), 
+            new IPTableRouter(),
             new EthernetListener(), 
             new PeerManager(),
             new PeerDiscovery()

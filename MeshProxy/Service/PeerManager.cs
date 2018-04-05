@@ -82,7 +82,7 @@ namespace MeshProxy.Services
 
 		public void SendPacket(Peer toPeer, byte[] packet)
 		{
-			Discovery.UdpClient.Send(packet, packet.Length, toPeer.ExternalIP);
+            Discovery.UdpClient.Send(packet, packet.Length, toPeer.ExternalEndPoint);
 		}
 
         private async Task<List<Peer>> PeerLookup(string peerName)

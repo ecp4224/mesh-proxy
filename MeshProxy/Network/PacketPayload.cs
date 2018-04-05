@@ -71,16 +71,26 @@ namespace MeshProxy.Network
 				this.type = capture.LinkLayerType;
 			}
 
+            public PacketForward(LinkLayers type, byte[] data) {
+                this.data = data;
+                this.type = type;
+            }
+
 			public byte[] Compile()
 			{
-				var json = JsonConvert.SerializeObject(this);
-				var jsonData = Encoding.UTF8.GetBytes(json);
+				//var json = JsonConvert.SerializeObject(this);
 
-				var compiled = new byte[jsonData.Length + 2];
+                //Console.WriteLine(json);
+
+				//var jsonData = Encoding.UTF8.GetBytes(json);
+
+                var compiled = new byte[data.Length + 1 + 2];
 				compiled[0] = 0x01;
 				compiled[1] = 0x03;
+                compiled[2] = (byte)type;
 
-				Array.Copy(jsonData, 0, compiled, 2, jsonData.Length);
+                Array.Copy(data, 0, compiled, 3, data.Length);
+				//Array.Copy(jsonData, 0, compiled, 2, jsonData.Length);
 
 				return compiled;
 			}

@@ -11,6 +11,8 @@ namespace MeshProxy.Utils
             string file = command.Split(' ')[0];
             string args = command.Substring(file.Length + 1);
 
+            Console.WriteLine("Executing " + command);
+
             using (Process proc = new Process
             {
                 StartInfo =
@@ -31,6 +33,8 @@ namespace MeshProxy.Utils
         {
             string file = command.Split(' ')[0];
             string args = command.Substring(file.Length + 1);
+
+            Console.WriteLine("Executing " + command);
 
             using (Process proc = new Process
             {

@@ -12,6 +12,7 @@ namespace MeshProxy.Services
 {
 	public class EthernetListener : Service
 	{
+        private IPTableRouter Router => Owner.GetService<IPTableRouter>();
 		private MeshProxyLog Log => Owner.GetService<MeshProxyLog>();
 		private PeerManager PeerManager => Owner.GetService<PeerManager>();
 		public ICaptureDevice Device { get; private set; }
@@ -86,7 +87,8 @@ namespace MeshProxy.Services
 
 			if (filter.ContainsKey(destination))
 			{
-				filter[destination](raw);
+                Log.Info("Got packet for " + destination);
+                //filter[destination](raw);
 			}
 		}
 
@@ -100,16 +102,19 @@ namespace MeshProxy.Services
 
 			if (result != 0)
 			{
-
-
 				Log.Error("Could not create virtual interface for peer " + peer.Name);
 				return false;
 			}
 
-			filter.Add(ip, delegate (RawCapture packet)
-			{
-				peer.ForwardPacket(packet);
-			});
+            peer.InternalIP = ip;
+
+            var routeAdded = await Router.AddRoute(peer);
+
+            if (!routeAdded) {
+                return false;
+            }
+
+			filter.Add(ip, peer.ForwardPacket);
 
 			startIp++;
 			if (startIp >= 255)

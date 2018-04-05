@@ -7,7 +7,7 @@ namespace MeshProxy.Utils
     {
         public static void SendTo(this UdpClient client, Peer peer, byte[] data, int length)
         {
-            client.Send(data, length, peer.ExternalIP);
+            client.Send(data, length, peer.ExternalEndPoint);
         }
     }
 }

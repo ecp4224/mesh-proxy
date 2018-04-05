@@ -101,7 +101,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="config.json" />
-    <None Include="SharpPcap.dll.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -109,6 +108,9 @@
     <Folder Include="Service\" />
     <Folder Include="Utils\" />
     <Folder Include="Network\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SharpPcap.dll.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

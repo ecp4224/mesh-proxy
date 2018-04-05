@@ -14,6 +14,10 @@ namespace MeshProxy.Services
         public string EthernetBindAddress => configProxy.ethernetBindIp;
         public IPAddress WifiBindAddress => IPAddress.Parse(configProxy.wifiBindIp);
 		public bool ForwardBroadcastPackets => configProxy.forwardBroadcastPackets;
+        public string DefaultGateway => configProxy.ethernetDefaultGateway;
+        public Dictionary<ushort, string> TcpPortFowarding => configProxy.tcpPorts;
+        public Dictionary<ushort, string> UdpPortFowarding => configProxy.udpPorts;
+        public int ForwardStrategy => configProxy.forwardStrategy;
 
         protected override async Task OnInit()
         {
@@ -52,7 +56,9 @@ namespace MeshProxy.Services
             public Dictionary<ushort, string> udpPorts = new Dictionary<ushort, string>();
             public string wifiBindIp = "10.0.0.93";
             public string ethernetBindIp = "10.0.0.94";
+            public string ethernetDefaultGateway = "192.168.1.1";
 			public bool forwardBroadcastPackets = true;
+            public int forwardStrategy = 3;
         }
     }
 }
