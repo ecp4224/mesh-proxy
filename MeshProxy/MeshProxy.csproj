@@ -86,7 +86,6 @@
     <Compile Include="DNS\Protocol\Utils\TaskExtensions.cs" />
     <Compile Include="DNS\Server\DnsServer.cs" />
     <Compile Include="DNS\Server\MasterFile.cs" />
-    <Compile Include="Service\EthernetListener.cs" />
     <Compile Include="Service\IPTableRouter.cs" />
     <Compile Include="Service\MeshProxyConfig.cs" />
     <Compile Include="Service\MeshProxyLog.cs" />

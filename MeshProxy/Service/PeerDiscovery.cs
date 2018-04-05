@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using MeshProxy.Utils;
 using MeshProxy.Network;
-using PacketDotNet;
 
 namespace MeshProxy.Services
 {
@@ -18,8 +17,7 @@ namespace MeshProxy.Services
         public PeerManager Manager => Owner.GetService<PeerManager>();
         public MeshProxyConfig Config => Owner.GetService<MeshProxyConfig>();
         public MeshProxyLog Log => Owner.GetService<MeshProxyLog>();
-		public EthernetListener Ethernet => Owner.GetService<EthernetListener>();
-        
+
         protected override async Task OnInit()
         {
             Log.Info("Starting PeerDiscovery Service");
@@ -90,25 +88,6 @@ namespace MeshProxy.Services
                         Log.Info("Got handshake response from " + payload.Name);
                     }
                 }
-                else if (recvData[0] == 0x01 && recvData[1] == 0x03)
-				{
-                    var type = (LinkLayers)recvData[2];
-                    var data = new byte[recvData.Length - 3];
-                    Array.Copy(recvData, 3, data, 0, data.Length);
-                    //var payload = JsonConvert.DeserializeObject<PacketPayload.PacketForward>(json);
-                    var payload = new PacketPayload.PacketForward(type, data);
-
-					var newPacket = await Manager.HandleForwardedPacket(payload);
-
-					if (newPacket == null)
-					{
-						Log.Warn("Got a forwarded packet but nothing was sent!");
-					}
-					else
-					{
-						Ethernet.Device.SendPacket(newPacket);
-					}
-				}
             }
         }
     }

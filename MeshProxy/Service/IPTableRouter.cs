@@ -9,6 +9,8 @@ namespace MeshProxy.Services
 	{
         private MeshProxyConfig Config => GetService<MeshProxyConfig>();
         private MeshProxyLog Log => GetService<MeshProxyLog>();
+        private int startIp;
+        private string Iprefix;
 
         private async Task ForwardStratOne() {
             Log.Info("Using Forwarding Strategy One");
@@ -87,6 +89,17 @@ namespace MeshProxy.Services
 
         protected override async Task OnInit()
 		{
+            var ip = Config.EthernetBindAddress;
+            var temp = ip.Split('.');
+
+            for (int i = 0; i < 3; i++)
+            {
+                Iprefix += temp[i] + ".";
+            }
+
+            startIp = int.Parse(temp[3]) + 1;
+
+
             switch (Config.ForwardStrategy) {
                 case 1:
                     await ForwardStratOne();
@@ -102,6 +115,35 @@ namespace MeshProxy.Services
                     break;
             }
 		}
+
+        public async Task<bool> CreateVirtualFor(Peer peer) {
+            Log.Info("Create virtual eth interface");
+
+            var ip = Iprefix + startIp;
+
+            var result = await AsyncShellCommand.Execute("sudo ifconfig eth0:" + peer.Id + " " + ip);
+
+            if (result != 0)
+            {
+                Log.Error("Could not create virtual interface for peer " + peer.Name);
+                return false;
+            }
+
+            peer.InternalIP = ip;
+
+            var routeAdded = await AddRoute(peer);
+
+            if (!routeAdded)
+            {
+                return false;
+            }
+
+            startIp++;
+            if (startIp >= 255)
+                startIp = 1;
+
+            return true;
+        }
 
 		public async Task<bool> AddRoute(Peer peer) {
             //Route peer's ethernet IP to peer's wifi IP

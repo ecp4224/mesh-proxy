@@ -12,7 +12,7 @@ namespace MeshProxy
             new MeshProxyLog(),
             new MeshProxyConfig(), 
             new IPTableRouter(),
-            new EthernetListener(), 
+            //new EthernetListener(), 
             new PeerManager(),
             new PeerDiscovery()
         };

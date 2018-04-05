@@ -20,7 +20,7 @@ namespace MeshProxy.Services
 
 		private PeerDiscovery Discovery => Owner.GetService<PeerDiscovery>();
         private MeshProxyLog Log => Owner.GetService<MeshProxyLog>();
-        private EthernetListener Ethernet => Owner.GetService<EthernetListener>();
+        private IPTableRouter IP => Owner.GetService<IPTableRouter>();
         private DnsServer server;
 
         public string[] KnownPeers
@@ -51,7 +51,7 @@ namespace MeshProxy.Services
 
             foreach (Question question in response.Questions)
             {
-                if (!question.Name.ToString().EndsWith(".local")) continue;
+                if (!question.Name.ToString().EndsWith(".local", StringComparison.Ordinal)) continue;
                 string domain = question.Name.ToString();
                 string peerName = domain.Substring(0, domain.Length - ".local".Length);
                 
@@ -119,7 +119,7 @@ namespace MeshProxy.Services
             
             //Setup UDP client
 			Peer peer = new Peer(recvBufferRemoteEndPoint, payload, this);
-            bool result = await Ethernet.CreateVirtualFor(peer);
+            bool result = await IP.CreateVirtualFor(peer);
 
             if (!result)
             {
@@ -139,50 +139,5 @@ namespace MeshProxy.Services
             
             return handshake;
         }
-
-		internal async Task<Packet> HandleForwardedPacket(PacketPayload.PacketForward payload)
-		{
-			var rawPacket = Packet.ParsePacket(payload.type, payload.data);
-
-			//See if we're doing TCP or UDP
-			var tcpPacket = (TcpPacket)rawPacket.Extract(typeof(TcpPacket));
-			var udpPacket = (UdpPacket)rawPacket.Extract(typeof(UdpPacket));
-
-			string ip;
-			if (tcpPacket != null)
-			{
-				//This is a TCP Packet, let's check our port table
-
-				ip = Config.TCPForwarding(tcpPacket.DestinationPort);
-				if (ip == null)
-					return null; //No port mapping, let's ignore this forwarded packet
-			}
-			else if (udpPacket != null)
-			{
-				//This is a UDP Packet, let's check out port table
-
-				ip = Config.UDPForwarding(udpPacket.DestinationPort);
-				if (ip == null)
-					return null; //No port mapping, let's ignore this forwarded packet
-			}
-			else
-			{
-				return null; //Unusuable packet, let's ignore this forwarded packet
-			}
-
-
-			//We have a port mapping, let's change some things on this packet
-			var ipPacket = (IpPacket)tcpPacket.Extract(typeof(IpPacket));
-
-			if (ipPacket != null)
-			{
-				ipPacket.DestinationAddress = IPAddress.Parse(ip);
-				ipPacket.SourceAddress = IPAddress.Parse(Config.EthernetBindAddress); //Set the source to be ourself
-
-				return rawPacket; //Ready to be sent!
-			}
-
-			return null; //Unusuable packet, let's ignore this forwarded packet
-		}
     }
 }
